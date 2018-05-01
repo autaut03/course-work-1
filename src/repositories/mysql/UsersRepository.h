@@ -1,0 +1,10 @@
+#ifndef KURSACH_USERSREPOSITORY_H
+#define KURSACH_USERSREPOSITORY_H
+
+
+class UsersRepository {
+
+};
+
+
+#endif //KURSACH_USERSREPOSITORY_H

@@ -1,0 +1,10 @@
+#ifndef KURSACH_ITEMSREPOSITORY_H
+#define KURSACH_ITEMSREPOSITORY_H
+
+
+class ItemsRepository {
+
+};
+
+
+#endif //KURSACH_ITEMSREPOSITORY_H
