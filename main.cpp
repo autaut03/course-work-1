@@ -1,5 +1,5 @@
 #include <iostream>
-#include "src/Instance.cpp"
+#include "src/Instance.h"
 
 using namespace std;
 

@@ -1,27 +1,7 @@
-#include <w32api/wincon.h>
 #include <clocale>
-//#include "Instance.h"
+#include <windows.h>
+#include "Instance.h"
 #include "menus/MainMenu.h"
-
-class Instance {
-private:
-    static Instance* instance;
-
-    // Зробив конструктор приватним, для зручності в IDE і просто для безпеки
-    Instance();
-
-    bool loggedIn = false;
-    bool administrator = false;
-
-    void setEncodings();
-
-public:
-    static Instance* getInstance();
-
-    void init();
-    //bool isLoggedIn();
-    //bool isAdministrator();
-};
 
 // Свого роду перевірка на те, що екземпляр класу ще не був створений
 Instance* Instance::instance = nullptr;
