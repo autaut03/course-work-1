@@ -1,18 +1,27 @@
 #ifndef KURSACH_MENU_H
 #define KURSACH_MENU_H
 
+#include <vector>
+#include <string>
+#include "Option.h"
+
+using namespace std;
 
 class Menu {
 private:
-    // Абстрактний метод кожного Меню, що відобразить його
-    virtual void display() = 0;
+    virtual vector<Option*> getOptions() = 0;
 
+    vector<Option*> getOptionsInternal();
     void clearScreen();
-    void printBefore();
-    void printAfter();
+    void printSeparatorBefore();
+    void printOptions(vector<Option*> &options);
+    void printSeparatorAfter();
+    int askForChoice(vector<Option*> &options, int optionsCount);
+
+protected:
+    virtual void addAdditionalOptions(vector<Option*> &options);
 
 public:
-    // Абстрактний метод кожного Меню, що відобразить його
     void displayMenu();
 };
 

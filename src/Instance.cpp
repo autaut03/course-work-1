@@ -1,7 +1,8 @@
 #include <clocale>
 #include <windows.h>
+#include <iostream>
 #include "Instance.h"
-#include "menus/MainMenu.h"
+#include "menus/main/MainMenu.h"
 
 // Свого роду перевірка на те, що екземпляр класу ще не був створений
 Instance* Instance::instance = nullptr;
@@ -25,10 +26,30 @@ void Instance::init() {
     mainMenu.displayMenu();
 }
 
-void Instance::setEncodings() {
-    setlocale(LC_ALL, "ukrainian");
-    SetConsoleCP(1251);
-    SetConsoleOutputCP(1251);
+void Instance::exit() {
+    cout << "Виходимо з програми.." << endl;
+    // Цей ексепшен буде зловлений в методі main, той верне EXIT_FAILURE і программа сама почистить за собою пам'ять.
+    throw std::exception();
 }
 
-Instance::Instance() {}
+void Instance::setEncodings() {
+    SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP( CP_UTF8 );
+    setvbuf(stdout, nullptr, _IOFBF, 1000);
+}
+
+Instance::Instance() {
+    user = nullptr;
+}
+
+bool Instance::isLoggedIn() {
+    return user != nullptr;
+}
+
+User* Instance::getUser() {
+    return user;
+}
+
+void Instance::setUser(User *userL) {
+    user = userL;
+}

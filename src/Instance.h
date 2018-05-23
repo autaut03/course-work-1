@@ -2,15 +2,15 @@
 #define KURSACH_INSTANCE_H
 
 
+#include "models/User.h"
+
 class Instance {
 private:
     static Instance* instance;
+    User* user;
 
     // Зробив конструктор приватним, для зручності в IDE і просто для безпеки
     Instance();
-
-    bool loggedIn = false;
-    bool administrator = false;
 
     void setEncodings();
 
@@ -18,8 +18,10 @@ public:
     static Instance* getInstance();
 
     void init();
-    //bool isLoggedIn();
-    //bool isAdministrator();
+    void exit();
+    bool isLoggedIn();
+    User* getUser();
+    void setUser(User* user);
 };
 
 
