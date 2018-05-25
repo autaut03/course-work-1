@@ -1,9 +1,14 @@
 #include <iostream>
 #include "SubMenu.h"
-#include "BackOption.h"
+#include "../KeyboardButton.h"
 
 using namespace std;
 
-void SubMenu::addAdditionalOptions(vector<Option*> &options) {
-    options.emplace_back(new BackOption(this));
+bool SubMenu::processButtonPress(Option *option, int button) {
+    if(button == ESC || button == ARROW_LEFT) {
+        returnBack();
+        return false;
+    }
+
+    return Menu::processButtonPress(option, button);
 }

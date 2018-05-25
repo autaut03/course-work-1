@@ -13,7 +13,7 @@ vector<Option*> AuthMenu::getOptions() {
     };
 }
 
-void AuthMenu::openPreviousMenu() {
+void AuthMenu::returnBack() {
     MainMenu menu;
     menu.displayMenu();
 }

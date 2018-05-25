@@ -2,7 +2,7 @@
 #define KURSACH_USER_H
 
 #include <string>
-#include "Model.tpp"
+#include "../orm/Model.tpp"
 
 using namespace std;
 
@@ -15,6 +15,8 @@ public:
     bool isAdmin;
 
     User(string login, string password, bool isAdmin);
+
+    string getRoleDisplayName();
 };
 
 #endif //KURSACH_USER_H

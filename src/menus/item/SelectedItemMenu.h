@@ -1,0 +1,10 @@
+#ifndef KURSACH_SELECTEDITEMMENU_H
+#define KURSACH_SELECTEDITEMMENU_H
+
+
+class SelectedItemMenu {
+
+};
+
+
+#endif //KURSACH_SELECTEDITEMMENU_H

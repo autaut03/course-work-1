@@ -10,12 +10,11 @@ add_executable(Kursach
         src/menus/login/RegisterOption.cpp
         src/menus/main/AuthMenuOption.cpp
         src/menus/main/MainMenu.cpp
-        src/menus/BackOption.cpp
         src/menus/ExitOption.cpp
         src/menus/Menu.cpp
         src/menus/Option.cpp
         src/menus/SubMenu.cpp
-        src/models/Model.tpp
+        src/orm/Model.tpp
         src/models/User.cpp
         src/repositories/files/FilesUsersRepository.cpp
         src/utils/console.cpp

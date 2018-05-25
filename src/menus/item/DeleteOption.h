@@ -1,0 +1,10 @@
+#ifndef KURSACH_DELETEOPTION_H
+#define KURSACH_DELETEOPTION_H
+
+
+class DeleteOption {
+
+};
+
+
+#endif //KURSACH_DELETEOPTION_H

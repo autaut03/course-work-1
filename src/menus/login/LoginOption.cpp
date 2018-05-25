@@ -18,13 +18,8 @@ void LoginOption::process() {
 
     cout << "Введіть пароль: ";
     string password;
-
-#ifdef __WIN32__
     cin >> password;
     //password = readHiddenInput();
-#else
-    cin >> password;
-#endif
 
     Instance* instance = Instance::getInstance();
 
@@ -40,6 +35,8 @@ void LoginOption::process() {
     }
 
     cout << "Ви успішно авторизувались!" << endl;
+
+    Sleep(1000);
 
     MainMenu menu;
     menu.displayMenu();

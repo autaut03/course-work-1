@@ -1,0 +1,10 @@
+#ifndef KURSACH_SEARCHOPTION_H
+#define KURSACH_SEARCHOPTION_H
+
+
+class SearchOption {
+
+};
+
+
+#endif //KURSACH_SEARCHOPTION_H

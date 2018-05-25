@@ -10,7 +10,7 @@ private:
     vector<Option*> getOptions() override;
 
 public:
-    void openPreviousMenu() override;
+    void returnBack() override;
 };
 
 

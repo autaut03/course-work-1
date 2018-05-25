@@ -15,3 +15,7 @@ User *Model<User>::createFromRow(vector<string> rowData) {
 vector<string> User::toRowData() {
     return { login, password, isAdmin ? "1" : "0" };
 }
+
+string User::getRoleDisplayName() {
+    return isAdmin ? "Адміністратор" : "Користувач";
+}

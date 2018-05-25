@@ -9,6 +9,8 @@ using namespace std;
 
 class Menu {
 private:
+    int pointingAtOption = 0;
+
     virtual vector<Option*> getOptions() = 0;
 
     vector<Option*> getOptionsInternal();
@@ -16,10 +18,11 @@ private:
     void printSeparatorBefore();
     void printOptions(vector<Option*> &options);
     void printSeparatorAfter();
-    int askForChoice(vector<Option*> &options, int optionsCount);
+    void drawMenu(vector<Option*> &options);
 
 protected:
-    virtual void addAdditionalOptions(vector<Option*> &options);
+    // If false returned, then the cycle should be stopped (menu changed)
+    virtual bool processButtonPress(Option* option, int button);
 
 public:
     void displayMenu();

@@ -19,6 +19,14 @@ User *FilesUsersRepository::getUserMatchingPair(std::string login, std::string p
 }
 
 User *FilesUsersRepository::createUser(string login, string password, bool isAdmin) {
+    for(auto user : User::all()) {
+        if(user->login != login)
+            continue;
+
+        cout << "Користувач з таким логіном вже існує, виберіть інший!" << endl;
+        return nullptr;
+    }
+
     User *user = new User(login, password, isAdmin);
     user->save();
 

@@ -1,0 +1,10 @@
+#ifndef KURSACH_ADDITEMOPTION_H
+#define KURSACH_ADDITEMOPTION_H
+
+
+class AddItemOption {
+
+};
+
+
+#endif //KURSACH_ADDITEMOPTION_H

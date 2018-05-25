@@ -7,10 +7,10 @@ using namespace std;
 
 class SubMenu: public Menu {
 protected:
-    void addAdditionalOptions(vector<Option*> &options) override;
+    bool processButtonPress(Option* option, int button) override;
 
 public:
-    virtual void openPreviousMenu() = 0;
+    virtual void returnBack() = 0;
 };
 
 
