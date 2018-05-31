@@ -2,19 +2,13 @@
 #define KURSACH_USER_H
 
 #include <string>
-#include "../orm/Model.tpp"
+#include "../orm/Model.hpp"
 
 using namespace std;
 
 class User: public Model<User> {
-private:
-    vector<string> toRowData() override;
-
 public:
-    string login, password;
-    bool isAdmin;
-
-    User(string login, string password, bool isAdmin);
+    User(const unordered_map<string, string> &data);
 
     string getRoleDisplayName();
 };

@@ -9,7 +9,7 @@ using namespace std;
 
 User *FilesUsersRepository::getUserMatchingPair(std::string login, std::string password) {
     for(auto user : User::all()) {
-        if(user->login != login || user->password != password)
+        if(user->get<string>("login") != login || user->get<string>("password") != password)
             continue;
 
         return user;
@@ -20,14 +20,18 @@ User *FilesUsersRepository::getUserMatchingPair(std::string login, std::string p
 
 User *FilesUsersRepository::createUser(string login, string password, bool isAdmin) {
     for(auto user : User::all()) {
-        if(user->login != login)
+        if(user->get<string>("login") != login)
             continue;
 
         cout << "Користувач з таким логіном вже існує, виберіть інший!" << endl;
         return nullptr;
     }
 
-    User *user = new User(login, password, isAdmin);
+    User *user = new User({
+          {"login", login},
+          {"password", password},
+          {"isAdmin", isAdmin}
+    });
     user->save();
 
     return user;

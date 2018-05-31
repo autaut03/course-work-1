@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.9)
 project(Kursach)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 add_executable(Kursach
-        main.cpp
+        src/exceptions/CustomExceptionBase.hpp
+        src/exceptions/ModelFieldNotFoundException.hpp
+        src/exceptions/UnableToCastModelFieldException.hpp
         src/menus/login/AuthMenu.cpp
         src/menus/login/LoginOption.cpp
         src/menus/login/RegisterOption.cpp
@@ -14,11 +16,13 @@ add_executable(Kursach
         src/menus/Menu.cpp
         src/menus/Option.cpp
         src/menus/SubMenu.cpp
-        src/orm/Model.tpp
         src/models/User.cpp
+        src/orm/Field.hpp
+        src/orm/Model.hpp
         src/repositories/files/FilesUsersRepository.cpp
         src/utils/console.cpp
         src/utils/files.cpp
         src/utils/strings.cpp
         src/Instance.cpp
+        main.cpp
         )

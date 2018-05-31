@@ -4,29 +4,44 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <unordered_map>
+#include <memory>
 #include "../utils/strings.h"
 #include "../utils/files.h"
+#include "Field.hpp"
+#include "../exceptions/ModelFieldNotFoundException.hpp"
 
 using namespace std;
 
 template <typename T>
 class Model {
 private:
+    unordered_map<string, unique_ptr<Field>> fields;
+
     static string getTableName(); // ABSTRACT
-    static T* createFromRow(vector<string> rowData); // ABSTRACT
+    //static T* createFromRow(vector<string> rowData); // ABSTRACT
     virtual vector<string> toRowData() = 0;
 
-    string toRow(int idToUse);
+    Field* getField(std::string const& field);
+    //string toRow(int idToUse);
     static void putFileStream(fstream& file);
-    static int getIDFromRowData(vector<string> rowData);
-    static vector<string> rowToRowData(string row);
+    //static int getIDFromRowData(vector<string> rowData);
+    //static vector<string> rowToRowData(string row);
     static int getLastID();
 
 public:
     int id = -1; // -1 значить, що модель НЕ записана в базу
 
+    Model(unordered_map<string, variant<bool, int, string>> const& data); // нету std::variant :(
+
     static vector<T*> all();
     void save();
+
+    template <typename S>
+    void set(std::string const& field, S value);
+
+    template <typename S>
+    S get(std::string const& field);
 };
 
 
@@ -124,7 +139,7 @@ void Model<T>::putFileStream(fstream &file) {
     openFile(getTableName(), file);
 }
 
-template <typename T>
+/*template <typename T>
 string Model<T>::toRow(int idToUse) {
     vector<string> rowData = toRowData();
     rowData.insert(rowData.begin(), to_string(idToUse));
@@ -140,4 +155,27 @@ int Model<T>::getIDFromRowData(vector<string> rowData) {
 template <typename T>
 vector<string> Model<T>::rowToRowData(string row) {
     return explodeString(row, "|");
+}*/
+
+template<typename T>
+Field *Model<T>::getField(std::string const &field) {
+    std::unordered_map<std::string, std::unique_ptr<Field>>::iterator iterator = fields.find(field);
+
+    if (iterator == fields.end()) {
+        throw ModelFieldNotFoundException(field);
+    }
+
+    return iterator->second.get();
+}
+
+template<typename T>
+template<typename S>
+void Model<T>::set(std::string const &field, S value) {
+    getField(field)->set<T>(value);
+}
+
+template<typename T>
+template<typename S>
+S Model<T>::get(std::string const &field) {
+    return getField(field)->get<T>();
 }
