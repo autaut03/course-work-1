@@ -8,8 +8,6 @@ using namespace std;
 
 class User: public Model<User> {
 public:
-    User(const unordered_map<string, string> &data);
-
     string getRoleDisplayName();
 };
 

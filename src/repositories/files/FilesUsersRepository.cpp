@@ -27,11 +27,10 @@ User *FilesUsersRepository::createUser(string login, string password, bool isAdm
         return nullptr;
     }
 
-    User *user = new User({
-          {"login", login},
-          {"password", password},
-          {"isAdmin", isAdmin}
-    });
+    User *user = new User();
+    user->set("login", login);
+    user->set("password", password);
+    user->set("isAdmin", isAdmin);
     user->save();
 
     return user;

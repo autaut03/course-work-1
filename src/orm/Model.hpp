@@ -1,6 +1,9 @@
 #ifndef KURSACH_MODEL_H
 #define KURSACH_MODEL_H
 
+#define ROW_FIELDS_SEPARATOR "\uE01F"
+#define ROW_FIELD_NAME_VALUE_SEPARATOR "\uE01E"
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -16,23 +19,25 @@ using namespace std;
 template <typename T>
 class Model {
 private:
-    unordered_map<string, unique_ptr<Field>> fields;
+
 
     static string getTableName(); // ABSTRACT
-    //static T* createFromRow(vector<string> rowData); // ABSTRACT
-    virtual vector<string> toRowData() = 0;
 
     Field* getField(std::string const& field);
-    //string toRow(int idToUse);
+    string toRow();
     static void putFileStream(fstream& file);
-    //static int getIDFromRowData(vector<string> rowData);
-    //static vector<string> rowToRowData(string row);
+    static unordered_map<string, unique_ptr<Field>> rowToFields(string row);
     static int getLastID();
 
 public:
+
+    unordered_map<string, unique_ptr<Field>> fields;
+
     int id = -1; // -1 значить, що модель НЕ записана в базу
 
-    Model(unordered_map<string, variant<bool, int, string>> const& data); // нету std::variant :(
+    Model(unordered_map<string, string> const& data);
+    Model(unordered_map<string, unique_ptr<Field>> data);
+    Model();
 
     static vector<T*> all();
     void save();
@@ -59,14 +64,9 @@ vector<T*> Model<T>::all() {
         if(line.length() == 0)
             continue;
 
-        vector<string> parts = rowToRowData(line);
-        // Запишемо айді моделі в змінну і витремо перший елемент вектору для зручності
-        int id = getIDFromRowData(parts);
-        parts.erase(parts.begin());
-
-        T* model = createFromRow(parts);
-        model->id = id;
-
+        //T* model = new T(rowToFields(line));
+        T* model = new T();
+        model->fields = rowToFields(line);
         result.emplace_back(model);
     }
 
@@ -86,9 +86,7 @@ int Model<T>::getLastID() {
         return -1;
     }
 
-    vector<string> rowData = rowToRowData(lastLine);
-
-    return getIDFromRowData(rowData);
+    return rowToFields(lastLine).at("id")->get<int>();
 }
 
 template <typename T>
@@ -97,7 +95,8 @@ void Model<T>::save() {
     putFileStream(file);
 
     if(id == -1) {
-        file << toRow(getLastID() + 1) << endl;
+        id = getLastID() + 1;
+        file << toRow() << endl;
         file.close();
         return;
     }
@@ -111,16 +110,16 @@ void Model<T>::save() {
         if(line.length() == 0)
             continue;
 
-        vector<string> parts = rowToRowData(line);
+        unordered_map<string, unique_ptr<Field>> fields = rowToFields(line);
 
         // Якщо це не та строка, яка нам потрібна, ми просто записуємо її в новий файл
-        if(getIDFromRowData(parts) != id) {
+        if(fields.at("id")->get<int>() != id) {
             newFile << line << endl;
             continue;
         }
 
         // Якщо та, яку потрібно замінити, тоді замість цього ми виводимо строку з новими даними
-        newFile << toRow(id) << endl;
+        newFile << toRow() << endl;
 
         break;
     }
@@ -139,43 +138,59 @@ void Model<T>::putFileStream(fstream &file) {
     openFile(getTableName(), file);
 }
 
-/*template <typename T>
-string Model<T>::toRow(int idToUse) {
-    vector<string> rowData = toRowData();
-    rowData.insert(rowData.begin(), to_string(idToUse));
-
-    return implodeString(rowData, "|");
-}
-
 template <typename T>
-int Model<T>::getIDFromRowData(vector<string> rowData) {
-    return stoi(rowData.at(0));;
-}
+string Model<T>::toRow() {
+    vector<string> keyValuePairs;
 
-template <typename T>
-vector<string> Model<T>::rowToRowData(string row) {
-    return explodeString(row, "|");
-}*/
-
-template<typename T>
-Field *Model<T>::getField(std::string const &field) {
-    std::unordered_map<std::string, std::unique_ptr<Field>>::iterator iterator = fields.find(field);
-
-    if (iterator == fields.end()) {
-        throw ModelFieldNotFoundException(field);
+    for(auto const& pair : fields) {
+        keyValuePairs.emplace_back(pair.first + ROW_FIELD_NAME_VALUE_SEPARATOR + pair.second->get<string>());
     }
 
-    return iterator->second.get();
+    return implodeString(keyValuePairs, ROW_FIELDS_SEPARATOR);
+}
+
+template <typename T>
+unordered_map<string, unique_ptr<Field>> Model<T>::rowToFields(string row) {
+    unordered_map<string, unique_ptr<Field>> result;
+
+    for(auto const& keyValue : explodeString(row, ROW_FIELDS_SEPARATOR)) {
+        vector<string> keyValueVector = explodeString(keyValue, ROW_FIELD_NAME_VALUE_SEPARATOR);
+
+        result[keyValueVector[0]] = make_unique<Field>(keyValueVector[1]);
+    }
+
+    return result;
 }
 
 template<typename T>
 template<typename S>
 void Model<T>::set(std::string const &field, S value) {
-    getField(field)->set<T>(value);
+    fields[field]->set<S>(value);
 }
 
 template<typename T>
 template<typename S>
 S Model<T>::get(std::string const &field) {
-    return getField(field)->get<T>();
+    auto iterator = fields.find(field);
+
+    if(iterator == fields.end()) {
+        throw ModelFieldNotFoundException(field);
+    }
+
+    return iterator->second->get<S>();
 }
+
+template<typename T>
+Model<T>::Model(unordered_map<string, string> const &data) {
+    for(auto const& pair : data) {
+        set<string>(pair.first, pair.second);
+    }
+}
+
+template<typename T>
+Model<T>::Model(unordered_map<string, unique_ptr<Field>> data) {
+    fields = data;
+}
+
+template<typename T>
+Model<T>::Model() {}

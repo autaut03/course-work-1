@@ -1,7 +1,6 @@
 #include <iostream>
 #include <limits>
 #include <synchapi.h>
-#include <conio.h>
 #include "Menu.h"
 #include "ExitOption.h"
 #include "../KeyboardButton.h"
@@ -10,7 +9,11 @@
 using namespace std;
 
 void Menu::clearScreen() {
+#ifdef __MINGW__
     system("cls");
+#else
+    system("clear");
+#endif
 }
 
 void Menu::printSeparatorBefore() {
@@ -18,7 +21,7 @@ void Menu::printSeparatorBefore() {
 
     if(Instance::getInstance()->isLoggedIn()) {
         User* user = Instance::getInstance()->getUser();
-        cout << "          Авторизовано як: " << user->login << " - " << user->getRoleDisplayName() << "" << endl;
+        cout << "          Авторизовано як: " << user->get<string>("login") << " - " << user->getRoleDisplayName() << "" << endl;
         printSeparatorAfter();
     }
 }
@@ -48,7 +51,7 @@ void Menu::displayMenu() {
 
     bool keepRunning = true;
     while(keepRunning) {
-        int button = getch();
+        int button = getchar();
 
         switch(button) {
             case ARROW_UP:
