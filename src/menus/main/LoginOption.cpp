@@ -1,6 +1,7 @@
 #include "LoginOption.h"
 #include <iostream>
-#include "../main/MainMenu.h"
+#include <conio.h>
+#include "MainMenu.h"
 #include "../../utils/console.h"
 #include "../../repositories/files/FilesUsersRepository.h"
 #include "../../Instance.h"
@@ -21,23 +22,23 @@ void LoginOption::process() {
     cin >> password;
     //password = readHiddenInput();
 
+    FilesUsersRepository repository;
     Instance* instance = Instance::getInstance();
 
-    FilesUsersRepository repository;
     instance->setUser(
             repository.getUserMatchingPair(login, password)
     );
 
     if(!instance->isLoggedIn()) {
-        cout << "Сталася помилка під час авторизації :(" << endl;
-        //displayMenu();
+        waitUntilKeypress("Логін або пароль було введено неправильно");
+
+        MainMenu menu;
+        menu.display();
         return;
     }
 
-    cout << "Ви успішно авторизувались!" << endl;
-
-    Sleep(1000);
+    waitUntilKeypress("Ви успішно авторизувались!");
 
     MainMenu menu;
-    menu.displayMenu();
+    menu.display();
 }

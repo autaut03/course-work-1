@@ -1,4 +1,5 @@
 #include "src/Instance.h"
+#include "src/utils/console.h"
 
 int main() {
     try {
@@ -8,7 +9,8 @@ int main() {
         instance->init();
 
         return EXIT_SUCCESS;
-    } catch (const std::exception&) {
+    } catch (const std::exception& ex) {
+        waitUntilKeypress("Критична помилка: " + std::string(ex.what()));
         return EXIT_FAILURE;
     }
 }

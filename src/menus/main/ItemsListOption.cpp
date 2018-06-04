@@ -1,4 +1,8 @@
+#include <iostream>
+#include <synchapi.h>
+#include <conio.h>
 #include "ItemsListOption.h"
+#include "MainMenu.h"
 #include "../items/ItemsListMenu.h"
 
 string ItemsListOption::getDisplayName() {
@@ -6,6 +10,6 @@ string ItemsListOption::getDisplayName() {
 }
 
 void ItemsListOption::process() {
-    //ItemsListMenu menu;
-    //menu.displayMenu();
+    ItemsListMenu menu;
+    menu.display();
 }

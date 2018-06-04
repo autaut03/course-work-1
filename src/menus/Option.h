@@ -2,13 +2,15 @@
 #define KURSACH_CHOICE_H
 
 #include <string>
+#include "MenuItem.h"
 
 using namespace std;
 
-class Option {
+class Option: public MenuItem {
 public:
     virtual string getDisplayName() = 0;
-    virtual void process() = 0;
+    bool canBePointedAt() override;
+    std::string getDisplayString() override;
 };
 
 

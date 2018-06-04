@@ -10,22 +10,23 @@ using namespace std;
 class Menu {
 private:
     int pointingAtOption = 0;
+    vector<MenuItem*> items;
+    vector<MenuItem*> pointableItems;
 
-    virtual vector<Option*> getOptions() = 0;
+    virtual vector<MenuItem*> getItems() = 0;
+    void parseItems();
 
-    vector<Option*> getOptionsInternal();
-    void clearScreen();
     void printSeparatorBefore();
-    void printOptions(vector<Option*> &options);
-    void printSeparatorAfter();
-    void drawMenu(vector<Option*> &options);
+    void printItems();
+    virtual void printSeparatorAfter();
+    void draw();
 
 protected:
     // If false returned, then the cycle should be stopped (menu changed)
-    virtual bool processButtonPress(Option* option, int button);
+    virtual bool processButtonPress(MenuItem* option, int button);
 
 public:
-    void displayMenu();
+    void display();
 };
 
 

@@ -2,9 +2,11 @@
 #define KURSACH_ITEMSLISTMENU_H
 
 
+#include "../SubMenu.h"
+
 class ItemsListMenu: public SubMenu {
 private:
-    vector<Option*> getOptions() override;
+    vector<MenuItem*> getItems() override;
 
 public:
     void returnBack() override;

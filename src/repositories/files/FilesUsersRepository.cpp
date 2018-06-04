@@ -7,7 +7,7 @@
 
 using namespace std;
 
-User *FilesUsersRepository::getUserMatchingPair(std::string login, std::string password) {
+User* FilesUsersRepository::getUserMatchingPair(std::string login, std::string password) {
     for(auto user : User::all()) {
         if(user->get<string>("login") != login || user->get<string>("password") != password)
             continue;
@@ -18,7 +18,7 @@ User *FilesUsersRepository::getUserMatchingPair(std::string login, std::string p
     return nullptr;
 }
 
-User *FilesUsersRepository::createUser(string login, string password, bool isAdmin) {
+User* FilesUsersRepository::createUser(string login, string password, bool isAdmin) {
     for(auto user : User::all()) {
         if(user->get<string>("login") != login)
             continue;
@@ -27,7 +27,7 @@ User *FilesUsersRepository::createUser(string login, string password, bool isAdm
         return nullptr;
     }
 
-    User *user = new User();
+    auto user = new User();
     user->set("login", login);
     user->set("password", password);
     user->set("isAdmin", isAdmin);

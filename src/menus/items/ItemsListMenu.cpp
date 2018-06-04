@@ -3,13 +3,13 @@
 
 using namespace std;
 
-vector<Option*> ItemsListMenu::getOptions() {
-    return {
+vector<MenuItem*> ItemsListMenu::getItems() {
+    vector<MenuItem*> options;
 
-    };
+    return options;
 }
 
 void ItemsListMenu::returnBack() {
     MainMenu menu;
-    menu.displayMenu();
+    menu.display();
 }

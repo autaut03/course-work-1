@@ -1,95 +1,101 @@
 #include <iostream>
 #include <limits>
-#include <synchapi.h>
+#include <conio.h>
+#include <algorithm>
 #include "Menu.h"
 #include "ExitOption.h"
-#include "../KeyboardButton.h"
 #include "../Instance.h"
+#include "../utils/console.h"
+#include "DummyItem.h"
+#include "CategorizerItem.h"
 
 using namespace std;
-
-void Menu::clearScreen() {
-#ifdef __MINGW__
-    system("cls");
-#else
-    system("clear");
-#endif
-}
 
 void Menu::printSeparatorBefore() {
     cout << "---==== ІНТЕРНЕТ МАГАЗИН ІГРОВИХ КЛЮЧІВ ТА АКАУНТІВ ====---" << endl;
 
     if(Instance::getInstance()->isLoggedIn()) {
-        User* user = Instance::getInstance()->getUser();
-        cout << "          Авторизовано як: " << user->get<string>("login") << " - " << user->getRoleDisplayName() << "" << endl;
-        printSeparatorAfter();
+        auto user = Instance::getInstance()->getUser();
+        cout << " Авторизовано як: " << user->get<string>("login") << " - " << user->getRoleDisplayName() << endl;
     }
 }
 
-void Menu::printOptions(vector<Option*> &options) {
-    for(int i = 0; i < options.size(); i++) {
-        cout << " " << (pointingAtOption == i ? "> " : " ") << options[i]->getDisplayName() << endl;
+void Menu::printItems() {
+    for (auto &item : items) {
+        if(item->canBePointedAt()) {
+            auto index = distance(pointableItems.begin(), find(pointableItems.begin(), pointableItems.end(), item));
+            cout << " " << (pointingAtOption == index ? "> " : " ");
+        }
+        cout << item->getDisplayString() << endl;
     }
 }
 
 void Menu::printSeparatorAfter() {
+    cout << "\n ↑ - вверх, ↓ - вниз, → або ENTER - вибрати" << endl;
     cout << "---=====================================================---" << endl;
 }
 
-vector<Option*> Menu::getOptionsInternal() {
-    vector<Option*> options = getOptions();
-    options.emplace_back(new ExitOption);
-
-    return options;
-}
-
-void Menu::displayMenu() {
-    vector<Option*> options = getOptionsInternal();
-    int optionsCount = options.size();
-
-    drawMenu(options);
+void Menu::display() {
+    parseItems();
+    draw();
 
     bool keepRunning = true;
     while(keepRunning) {
-        int button = getchar();
+        int button = getch();
 
         switch(button) {
             case ARROW_UP:
                 if(pointingAtOption == 0) {
-                    break;
+                    pointingAtOption = pointableItems.size() - 1;
+                } else {
+                    pointingAtOption--;
                 }
 
-                pointingAtOption--;
-                drawMenu(options);
+                draw();
                 break;
             case ARROW_DOWN:
-                if(pointingAtOption + 1 == optionsCount) {
-                    break;
+                if(pointingAtOption + 1 == pointableItems.size()) {
+                    pointingAtOption = 0;
+                } else {
+                    pointingAtOption++;
                 }
 
-                pointingAtOption++;
-                drawMenu(options);
+                draw();
                 break;
             case ENTER:
             case ARROW_RIGHT:
                 keepRunning = false;
-                options.at(pointingAtOption)->process();
+                pointableItems.at(pointingAtOption)->process();
                 break;
             default:
-                keepRunning = processButtonPress(options.at(pointingAtOption), button);
+                keepRunning = processButtonPress(pointableItems.at(pointingAtOption), button);
                 break;
         }
     }
 }
 
-bool Menu::processButtonPress(Option* option, int button) {
+bool Menu::processButtonPress(MenuItem* option, int button) {
     return true;
 }
 
+void Menu::parseItems() {
+    items = getItems();
+    items.emplace_back(new CategorizerItem("ІНШЕ"));
+    items.emplace_back(new ExitOption);
 
-void Menu::drawMenu(vector<Option*> &options) {
+    for(auto item : items) {
+        if(! item->canBePointedAt()) {
+            continue;
+        }
+
+        pointableItems.emplace_back(item);
+    }
+}
+
+
+void Menu::draw() {
     clearScreen();
     printSeparatorBefore();
-    printOptions(options);
+    printItems();
     printSeparatorAfter();
 }

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <memory>
+//#include <w32api/synchapi.h>
 #include "../utils/strings.h"
 #include "../utils/files.h"
 #include "Field.hpp"
@@ -19,24 +20,22 @@ using namespace std;
 template <typename T>
 class Model {
 private:
-
-
     static string getTableName(); // ABSTRACT
 
     Field* getField(std::string const& field);
     string toRow();
     static void putFileStream(fstream& file);
-    static unordered_map<string, unique_ptr<Field>> rowToFields(string row);
+    static unordered_map<string, Field> rowToFields(string row);
     static int getLastID();
 
 public:
 
-    unordered_map<string, unique_ptr<Field>> fields;
+    unordered_map<string, Field> fields;
 
     int id = -1; // -1 значить, що модель НЕ записана в базу
 
     Model(unordered_map<string, string> const& data);
-    Model(unordered_map<string, unique_ptr<Field>> data);
+    Model(unordered_map<string, Field> data);
     Model();
 
     static vector<T*> all();
@@ -65,7 +64,7 @@ vector<T*> Model<T>::all() {
             continue;
 
         //T* model = new T(rowToFields(line));
-        T* model = new T();
+        auto model = new T();
         model->fields = rowToFields(line);
         result.emplace_back(model);
     }
@@ -86,7 +85,7 @@ int Model<T>::getLastID() {
         return -1;
     }
 
-    return rowToFields(lastLine).at("id")->get<int>();
+    return rowToFields(lastLine).at("id").get<int>();
 }
 
 template <typename T>
@@ -110,10 +109,10 @@ void Model<T>::save() {
         if(line.length() == 0)
             continue;
 
-        unordered_map<string, unique_ptr<Field>> fields = rowToFields(line);
+        unordered_map<string, Field> fields = rowToFields(line);
 
         // Якщо це не та строка, яка нам потрібна, ми просто записуємо її в новий файл
-        if(fields.at("id")->get<int>() != id) {
+        if(fields.at("id").get<int>() != id) {
             newFile << line << endl;
             continue;
         }
@@ -142,21 +141,21 @@ template <typename T>
 string Model<T>::toRow() {
     vector<string> keyValuePairs;
 
-    for(auto const& pair : fields) {
-        keyValuePairs.emplace_back(pair.first + ROW_FIELD_NAME_VALUE_SEPARATOR + pair.second->get<string>());
+    for(auto pair : fields) {
+        keyValuePairs.emplace_back(pair.first + ROW_FIELD_NAME_VALUE_SEPARATOR + pair.second.get<string>());
     }
 
     return implodeString(keyValuePairs, ROW_FIELDS_SEPARATOR);
 }
 
 template <typename T>
-unordered_map<string, unique_ptr<Field>> Model<T>::rowToFields(string row) {
-    unordered_map<string, unique_ptr<Field>> result;
+unordered_map<string, Field> Model<T>::rowToFields(string row) {
+    unordered_map<string, Field> result;
 
-    for(auto const& keyValue : explodeString(row, ROW_FIELDS_SEPARATOR)) {
+    for(auto keyValue : explodeString(row, ROW_FIELDS_SEPARATOR)) {
         vector<string> keyValueVector = explodeString(keyValue, ROW_FIELD_NAME_VALUE_SEPARATOR);
 
-        result[keyValueVector[0]] = make_unique<Field>(keyValueVector[1]);
+        result[keyValueVector[0]] = Field(keyValueVector[1]);
     }
 
     return result;
@@ -165,7 +164,11 @@ unordered_map<string, unique_ptr<Field>> Model<T>::rowToFields(string row) {
 template<typename T>
 template<typename S>
 void Model<T>::set(std::string const &field, S value) {
-    fields[field]->set<S>(value);
+    /*if(fields.count(field) == 0) {
+        fields.emplace(field, Field>());
+    }*/
+
+    return fields[field].set<S>(value);
 }
 
 template<typename T>
@@ -177,7 +180,7 @@ S Model<T>::get(std::string const &field) {
         throw ModelFieldNotFoundException(field);
     }
 
-    return iterator->second->get<S>();
+    return iterator->second.get<S>();
 }
 
 template<typename T>
@@ -188,7 +191,7 @@ Model<T>::Model(unordered_map<string, string> const &data) {
 }
 
 template<typename T>
-Model<T>::Model(unordered_map<string, unique_ptr<Field>> data) {
+Model<T>::Model(unordered_map<string, Field> data) {
     fields = data;
 }
 

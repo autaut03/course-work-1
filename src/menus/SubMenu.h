@@ -6,8 +6,11 @@
 using namespace std;
 
 class SubMenu: public Menu {
+private:
+    void printSeparatorAfter() override;
+
 protected:
-    bool processButtonPress(Option* option, int button) override;
+    bool processButtonPress(MenuItem* option, int button) override;
 
 public:
     virtual void returnBack() = 0;

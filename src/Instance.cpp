@@ -23,7 +23,7 @@ void Instance::init() {
     setEncodings();
 
     MainMenu mainMenu;
-    mainMenu.displayMenu();
+    mainMenu.display();
 }
 
 void Instance::exit() {
@@ -50,6 +50,6 @@ User* Instance::getUser() {
     return user;
 }
 
-void Instance::setUser(User *userL) {
+void Instance::setUser(User* userL) {
     user = userL;
 }

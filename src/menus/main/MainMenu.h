@@ -2,12 +2,13 @@
 #define KURSACH_MAINMENU_H
 
 #include "../Menu.h"
+#include "../MenuItem.h"
 
 using namespace std;
 
 class MainMenu: public Menu {
 private:
-    vector<Option*> getOptions() override;
+    vector<MenuItem*> getItems() override;
 };
 
 

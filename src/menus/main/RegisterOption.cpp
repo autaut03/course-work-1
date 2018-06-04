@@ -1,5 +1,6 @@
 #include <iostream>
-#include "../main/MainMenu.h"
+#include <conio.h>
+#include "MainMenu.h"
 #include "../../utils/console.h"
 #include "../../repositories/files/FilesUsersRepository.h"
 #include "../../Instance.h"
@@ -21,16 +22,19 @@ void RegisterOption::process() {
     cin >> password;
 
     FilesUsersRepository repository;
-    User* user = repository.createUser(login, password, false);
+    auto user = repository.createUser(login, password, false);
 
     if(user == nullptr) {
-        cout << "Сталася помилка під час реєстрації :(" << endl;
+        waitUntilKeypress("Сталася помилка під час реєстрації :(");
+
+        MainMenu menu;
+        menu.display();
         return;
     }
 
     Instance::getInstance()->setUser(user);
-    cout << "Ви успішно зареєструвались і авторизувались!" << endl;
+    waitUntilKeypress("Ви успішно зареєструвались і авторизувались!");
 
     MainMenu menu;
-    menu.displayMenu();
+    menu.display();
 }

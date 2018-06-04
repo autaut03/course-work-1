@@ -34,5 +34,5 @@ void openFile(string name, fstream& file) {
 }
 
 string wrapFilename(string name) {
-    return "D:/" + name + ".txt";
+    return name + ".txt";
 }
