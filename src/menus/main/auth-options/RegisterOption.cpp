@@ -1,9 +1,9 @@
 #include <iostream>
 #include <conio.h>
-#include "MainMenu.h"
-#include "../../utils/console.h"
-#include "../../repositories/files/FilesUsersRepository.h"
-#include "../../Instance.h"
+#include "../MainMenu.h"
+#include "../../../utils/console.h"
+#include "../../../repositories/files/FilesUsersRepository.h"
+#include "../../../Instance.h"
 #include "RegisterOption.h"
 
 using namespace std;

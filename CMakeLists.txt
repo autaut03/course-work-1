@@ -8,10 +8,10 @@ add_executable(Kursach
         src/exceptions/ModelFieldNotFoundException.hpp
         src/exceptions/UnableToCastModelFieldException.hpp
         src/menus/items/ItemsListMenu.cpp
-        src/menus/main/LoginOption.cpp
-        src/menus/main/RegisterOption.cpp
-        src/menus/main/ItemsListOption.cpp
-        src/menus/main/LogOutOption.cpp
+        src/menus/main/auth-options/LoginOption.cpp
+        src/menus/main/auth-options/RegisterOption.cpp
+        src/menus/main/items-options/ItemsListOption.cpp
+        src/menus/main/auth-options/LogOutOption.cpp
         src/menus/main/MainMenu.cpp
         src/menus/ExitOption.cpp
         src/menus/Menu.cpp

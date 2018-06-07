@@ -7,6 +7,7 @@
 using namespace std;
 
 class User: public Model<User> {
+    using Model<User>::Model;
 public:
     string getRoleDisplayName();
 };

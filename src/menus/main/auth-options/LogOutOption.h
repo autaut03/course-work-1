@@ -2,7 +2,7 @@
 #define KURSACH_LOGOUTOPTION_H
 
 
-#include "../Option.h"
+#include "../../Option.h"
 
 class LogOutOption: public Option {
 public:

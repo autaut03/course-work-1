@@ -2,7 +2,7 @@
 #define KURSACH_REGISTERCHOICE_H
 
 
-#include "../Option.h"
+#include "../../Option.h"
 
 class RegisterOption: public Option {
 public:

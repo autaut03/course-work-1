@@ -21,6 +21,7 @@ template <typename T>
 class Model {
 private:
     static string getTableName(); // ABSTRACT
+    static vector<string> getRequiredFieldsList(); // ABSTRACT
 
     Field* getField(std::string const& field);
     string toRow();
@@ -64,8 +65,9 @@ vector<T*> Model<T>::all() {
             continue;
 
         //T* model = new T(rowToFields(line));
-        auto model = new T();
-        model->fields = rowToFields(line);
+        auto model = new T(rowToFields(line));
+        //auto model = new T();
+        //model->fields = rowToFields(line);
         result.emplace_back(model);
     }
 

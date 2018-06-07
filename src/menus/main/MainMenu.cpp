@@ -1,13 +1,13 @@
 #include "MainMenu.h"
 #include "../../Instance.h"
-#include "LogOutOption.h"
+#include "auth-options/LogOutOption.h"
 #include "../MenuItem.h"
 #include "../DummyItem.h"
-#include "ItemsListOption.h"
+#include "items-options/ItemsListOption.h"
 #include "../../utils/console.h"
 #include "../CategorizerItem.h"
-#include "LoginOption.h"
-#include "RegisterOption.h"
+#include "auth-options/LoginOption.h"
+#include "auth-options/RegisterOption.h"
 
 using namespace std;
 

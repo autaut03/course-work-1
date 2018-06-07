@@ -2,7 +2,7 @@
 #define KURSACH_LOGINCHOICE_H
 
 
-#include "../Option.h"
+#include "../../Option.h"
 
 class LoginOption: public Option {
 public:

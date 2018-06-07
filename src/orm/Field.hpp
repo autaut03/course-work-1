@@ -6,7 +6,7 @@
 
 class Field {
 public:
-    Field() {}
+    Field() = default;
     Field(std::string const& string) : value_(string) {}
     virtual ~Field() = default;
 
