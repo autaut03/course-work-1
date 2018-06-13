@@ -1,8 +1,6 @@
 #include <iostream>
-#include <conio.h>
 #include "../MainMenu.h"
 #include "../../../utils/console.h"
-#include "../../../repositories/files/FilesUsersRepository.h"
 #include "../../../Instance.h"
 #include "RegisterOption.h"
 
@@ -21,16 +19,22 @@ void RegisterOption::process() {
     string password;
     cin >> password;
 
-    FilesUsersRepository repository;
-    auto user = repository.createUser(login, password, false);
+    for(auto user : User::all()) {
+        if(user->get<string>("login") != login)
+            continue;
 
-    if(user == nullptr) {
-        waitUntilKeypress("Сталася помилка під час реєстрації :(");
+        waitUntilKeypress("Користувач з таким логіном вже існує, виберіть інший!");
 
         MainMenu menu;
         menu.display();
         return;
     }
+
+    auto user = new User();
+    user->set("login", login);
+    user->set("password", password);
+    user->set("isAdmin", false);
+    user->save();
 
     Instance::getInstance()->setUser(user);
     waitUntilKeypress("Ви успішно зареєструвались і авторизувались!");

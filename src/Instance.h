@@ -1,7 +1,6 @@
 #ifndef KURSACH_INSTANCE_H
 #define KURSACH_INSTANCE_H
 
-
 #include "models/User.h"
 
 class Instance {

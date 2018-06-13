@@ -1,10 +1,9 @@
 #include "LoginOption.h"
 #include <iostream>
-#include <conio.h>
 #include "../MainMenu.h"
 #include "../../../utils/console.h"
-#include "../../../repositories/files/FilesUsersRepository.h"
 #include "../../../Instance.h"
+#include <conio.h>
 
 using namespace std;
 
@@ -22,14 +21,15 @@ void LoginOption::process() {
     cin >> password;
     //password = readHiddenInput();
 
-    FilesUsersRepository repository;
-    Instance* instance = Instance::getInstance();
+    User* foundUser = nullptr;
+    for(auto user : User::all()) {
+        if(user->get<string>("login") != login || user->get<string>("password") != password)
+            continue;
 
-    instance->setUser(
-            repository.getUserMatchingPair(login, password)
-    );
+        foundUser = user;
+    }
 
-    if(!instance->isLoggedIn()) {
+    if(foundUser == nullptr) {
         waitUntilKeypress("Логін або пароль було введено неправильно");
 
         MainMenu menu;
@@ -37,6 +37,7 @@ void LoginOption::process() {
         return;
     }
 
+    Instance::getInstance()->setUser(foundUser);
     waitUntilKeypress("Ви успішно авторизувались!");
 
     MainMenu menu;

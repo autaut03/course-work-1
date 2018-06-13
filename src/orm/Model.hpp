@@ -9,7 +9,6 @@
 #include <iostream>
 #include <unordered_map>
 #include <memory>
-//#include <w32api/synchapi.h>
 #include "../utils/strings.h"
 #include "../utils/files.h"
 #include "Field.hpp"
@@ -23,7 +22,6 @@ private:
     static string getTableName(); // ABSTRACT
     static vector<string> getRequiredFieldsList(); // ABSTRACT
 
-    Field* getField(std::string const& field);
     string toRow();
     static void putFileStream(fstream& file);
     static unordered_map<string, Field> rowToFields(string row);
@@ -34,13 +32,16 @@ public:
     unordered_map<string, Field> fields;
 
     int id = -1; // -1 значить, що модель НЕ записана в базу
+    bool deleted = false;
 
     Model(unordered_map<string, string> const& data);
     Model(unordered_map<string, Field> data);
     Model();
 
+    static T* findByID(int id);
     static vector<T*> all();
     void save();
+    void remove();
 
     template <typename S>
     void set(std::string const& field, S value);
@@ -50,7 +51,18 @@ public:
 };
 
 
-#endif //KURSACH_MODEL_H
+template <typename T>
+T* Model<T>::findByID(int id) {
+    for(auto model : all()) {
+        if(model->template get<int>("id") != id) {
+            continue;
+        }
+
+        return model;
+    }
+
+    return nullptr;
+}
 
 template <typename T>
 vector<T*> Model<T>::all() {
@@ -119,10 +131,14 @@ void Model<T>::save() {
             continue;
         }
 
-        // Якщо та, яку потрібно замінити, тоді замість цього ми виводимо строку з новими даними
-        newFile << toRow() << endl;
+        // Якщо та, яку потрібно замінити, тоді спочатку перевіримо, чи модель було видалено
+        // Якщо так - пропустимо цей рядок
+        if(deleted) {
+            continue;
+        }
 
-        break;
+        // Якщо модель не було видалено - виведемо строку з новими даними
+        newFile << toRow() << endl;
     }
 
     file.close();
@@ -130,8 +146,14 @@ void Model<T>::save() {
 
     const char *oldFilename = wrapFilename(getTableName()).c_str();
 
-    remove(oldFilename);
+    ::remove(oldFilename);
     rename(wrapFilename(newFilename).c_str(), oldFilename);
+}
+
+template<typename T>
+void Model<T>::remove() {
+    deleted = true;
+    save();
 }
 
 template<typename T>
@@ -199,3 +221,5 @@ Model<T>::Model(unordered_map<string, Field> data) {
 
 template<typename T>
 Model<T>::Model() {}
+
+#endif //KURSACH_MODEL_H

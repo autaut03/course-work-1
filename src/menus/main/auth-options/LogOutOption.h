@@ -1,7 +1,6 @@
 #ifndef KURSACH_LOGOUTOPTION_H
 #define KURSACH_LOGOUTOPTION_H
 
-
 #include "../../Option.h"
 
 class LogOutOption: public Option {

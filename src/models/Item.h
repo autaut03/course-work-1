@@ -5,7 +5,7 @@
 #include "../orm/Model.hpp"
 
 class Item: public Model<Item> {
-
+    using Model<Item>::Model;
 };
 
 

@@ -1,7 +1,6 @@
 #ifndef KURSACH_ITEMSLISTMENU_H
 #define KURSACH_ITEMSLISTMENU_H
 
-
 #include "../SubMenu.h"
 
 class ItemsListMenu: public SubMenu {
