@@ -1,0 +1,1533 @@
+// main.cpp
+#include "src/Instance.h"
+#include "src/utils/console.h"
+
+int main() {
+    try {
+        // Отримаєм екземпляр головного класу програми, який є сінглтоном
+        Instance *instance = Instance::getInstance();
+
+        instance->init();
+
+        return EXIT_SUCCESS;
+    } catch (const std::exception& ex) {
+        waitUntilKeypress("Критична помилка: " + std::string(ex.what()));
+        return EXIT_FAILURE;
+    }
+}
+
+// src/exceptions/CustomExceptionBase.hpp
+#ifndef KURSACH_CUSTOMEXCEPTIONBASE_H
+#define KURSACH_CUSTOMEXCEPTIONBASE_H
+
+#include <exception>
+#include <string>
+
+class CustomExceptionBase : public std::exception {
+public:
+    CustomExceptionBase(std::string msg) : msg_(msg) {}
+
+    std::string str() const noexcept {
+        return msg_;
+    }
+
+private:
+    std::string msg_;
+};
+
+#endif //KURSACH_CUSTOMEXCEPTIONBASE_H
+
+
+// src/exceptions/ModelFieldNotFoundException.hpp
+#ifndef KURSACH_MODELFIELDNOTFOUNDEXCEPTION_H
+#define KURSACH_MODELFIELDNOTFOUNDEXCEPTION_H
+
+#include "CustomExceptionBase.hpp"
+
+class ModelFieldNotFoundException : public CustomExceptionBase {
+public:
+    ModelFieldNotFoundException(std::string fieldName) : CustomExceptionBase("Model field '" + fieldName + "' wasn't found.") {}
+};
+
+#endif //KURSACH_MODELFIELDNOTFOUNDEXCEPTION_H
+
+
+// src/exceptions/UnableToCastModelFieldException.hpp
+#ifndef KURSACH_UNABLETOCASTMODELFIELDEXCEPTION_H
+#define KURSACH_UNABLETOCASTMODELFIELDEXCEPTION_H
+
+#include "CustomExceptionBase.hpp"
+
+class UnableToCastModelFieldException : public CustomExceptionBase {
+public:
+    UnableToCastModelFieldException(std::string funcSig) : CustomExceptionBase("Unable to cast model field: " + funcSig) {}
+};
+
+#endif //KURSACH_UNABLETOCASTMODELFIELDEXCEPTION_H
+
+
+// src/Instance.cpp
+#include <clocale>
+#include <windows.h>
+#include <iostream>
+#include "Instance.h"
+#include "menus/main/MainMenu.h"
+
+// Свого роду перевірка на те, що екземпляр класу ще не був створений
+Instance* Instance::instance = nullptr;
+
+Instance* Instance::getInstance() {
+    // Тут все просто: при визові цього статичного методу, він провірить, чи вже був створений екземпляр класу чи ні
+    // якщо ні - створить його, ну а далі він вернеться куди потрібно.
+    if (instance == nullptr)
+    {
+        instance = new Instance();
+    }
+
+    return instance;
+}
+
+// Основна логіка запуску програми
+void Instance::init() {
+    setEncodings();
+
+    MainMenu mainMenu;
+    mainMenu.display();
+}
+
+void Instance::exit() {
+    cout << "Виходимо з програми.." << endl;
+    // Цей ексепшен буде зловлений в методі main, той верне EXIT_FAILURE і программа сама почистить за собою пам'ять.
+    throw std::exception();
+}
+
+void Instance::setEncodings() {
+    SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP( CP_UTF8 );
+    setvbuf(stdout, nullptr, _IOFBF, 1000);
+}
+
+Instance::Instance() {
+    user = nullptr;
+}
+
+bool Instance::isLoggedIn() {
+    return user != nullptr;
+}
+
+User* Instance::getUser() {
+    return user;
+}
+
+void Instance::setUser(User* userL) {
+    user = userL;
+}
+
+
+// src/Instance.h
+#ifndef KURSACH_INSTANCE_H
+#define KURSACH_INSTANCE_H
+
+#include "models/User.h"
+
+class Instance {
+private:
+    static Instance* instance;
+    User* user;
+
+    // Зробив конструктор приватним, для зручності в IDE і просто для безпеки
+    Instance();
+
+    void setEncodings();
+
+public:
+    static Instance* getInstance();
+
+    void init();
+    void exit();
+    bool isLoggedIn();
+    User* getUser();
+    void setUser(User* user);
+};
+
+
+#endif //KURSACH_INSTANCE_H
+
+
+// src/menus/CategorizerItem.cpp
+#include "CategorizerItem.h"
+
+CategorizerItem::CategorizerItem(std::string category) : DummyItem("\n[" + category + "]") {}
+
+
+// src/menus/CategorizerItem.h
+#ifndef KURSACH_CATEGORIZERITEM_H
+#define KURSACH_CATEGORIZERITEM_H
+
+#include "DummyItem.h"
+
+class CategorizerItem: public DummyItem {
+public:
+    CategorizerItem(std::string category);
+};
+
+
+#endif //KURSACH_CATEGORIZERITEM_H
+
+
+// src/menus/DummyItem.cpp
+#include "DummyItem.h"
+
+bool DummyItem::canBePointedAt() {
+    return false;
+}
+
+
+std::string DummyItem::getDisplayString() {
+    return msg_;
+}
+
+void DummyItem::process() {}
+
+DummyItem::DummyItem() {}
+
+DummyItem::DummyItem(std::string msg) : msg_(msg) {}
+
+
+// src/menus/DummyItem.h
+#ifndef KURSACH_SEPARATORITEM_H
+#define KURSACH_SEPARATORITEM_H
+
+
+#include "Option.h"
+
+class DummyItem: public MenuItem {
+public:
+    DummyItem();
+    DummyItem(std::string msg);
+
+    std::string getDisplayString() override;
+    bool canBePointedAt() override;
+    void process() override;
+
+private:
+    std::string msg_ = "";
+};
+
+
+#endif //KURSACH_SEPARATORITEM_H
+
+
+// src/menus/ExitOption.cpp
+#include <iostream>
+#include "ExitOption.h"
+#include "../Instance.h"
+
+using namespace std;
+
+string ExitOption::getDisplayName() {
+    return "Вийти з програми";
+}
+
+void ExitOption::process() {
+    Instance::getInstance()->exit();
+}
+
+
+// src/menus/ExitOption.h
+#ifndef KURSACH_EXITOPTION_H
+#define KURSACH_EXITOPTION_H
+
+#include "Option.h"
+
+class ExitOption: public Option {
+public:
+    string getDisplayName() override;
+    void process() override;
+};
+
+
+#endif //KURSACH_EXITOPTION_H
+
+
+// src/menus/item/BuyItemOption.cpp
+#include "BuyItemOption.h"
+#include "../../utils/console.h"
+#include "../items/ItemsListMenu.h"
+
+string BuyItemOption::getDisplayName() {
+    return "Купити";
+}
+
+void BuyItemOption::process() {
+    // Тут логіка добавлення товару в список "куплених" користувача
+
+    waitUntilKeypress("Ви купили товар: " + item_->get<string>("title"));
+
+    ItemsListMenu menu;
+    menu.display();
+}
+
+BuyItemOption::BuyItemOption(Item *item) : item_(item) {}
+
+
+// src/menus/item/BuyItemOption.h
+#ifndef KURSACH_BUYITEM_H
+#define KURSACH_BUYITEM_H
+
+
+#include "../Option.h"
+#include "../../models/Item.h"
+
+class BuyItemOption: public Option {
+public:
+    string getDisplayName() override;
+    void process() override;
+
+    BuyItemOption(Item* item);
+
+private:
+    Item* item_;
+};
+
+
+#endif //KURSACH_BUYITEM_H
+
+
+// src/menus/item/DeleteItemOption.cpp
+#include "DeleteItemOption.h"
+#include "../../utils/console.h"
+#include "../items/ItemsListMenu.h"
+
+string DeleteItemOption::getDisplayName() {
+    return "Видалити";
+}
+
+void DeleteItemOption::process() {
+    item_->remove();
+
+    waitUntilKeypress("Ви видалили товар: " + item_->get<string>("title"));
+
+    ItemsListMenu menu;
+    menu.display();
+}
+
+DeleteItemOption::DeleteItemOption(Item *item) : item_(item) {}
+
+
+// src/menus/item/DeleteItemOption.h
+#ifndef KURSACH_DELETEITEM_H
+#define KURSACH_DELETEITEM_H
+
+
+#include "../Option.h"
+#include "../../models/Item.h"
+
+class DeleteItemOption: public Option {
+public:
+    string getDisplayName() override;
+    void process() override;
+
+    DeleteItemOption(Item* item);
+
+private:
+    Item* item_;
+};
+
+
+#endif //KURSACH_DELETEITEM_H
+
+
+// src/menus/item/ItemMenu.cpp
+#include "ItemMenu.h"
+#include "../items/ItemsListMenu.h"
+#include "../DummyItem.h"
+#include "../CategorizerItem.h"
+#include "BuyItemOption.h"
+#include "DeleteItemOption.h"
+#include "../../Instance.h"
+
+using namespace std;
+
+vector<MenuItem*> ItemMenu::getItems() {
+    vector<MenuItem*> options;
+
+    options.emplace_back(new DummyItem("\n " + item_->get<string>("title") + "\n - " + item_->get<string>("description")));
+
+    if(Instance::getInstance()->isLoggedIn()) {
+        options.emplace_back(new CategorizerItem("ДІЇ"));
+        options.emplace_back(new BuyItemOption(item_));
+        if(Instance::getInstance()->getUser()->get<bool>("isAdmin")) {
+            options.emplace_back(new DeleteItemOption(item_));
+        }
+    }
+
+    return options;
+}
+
+void ItemMenu::returnBack() {
+    ItemsListMenu menu;
+    menu.display();
+}
+
+ItemMenu::ItemMenu(Item *item) : item_(item) {}
+
+
+// src/menus/item/ItemMenu.h
+#ifndef KURSACH_ITEMMENU_H
+#define KURSACH_ITEMMENU_H
+
+#include "../SubMenu.h"
+#include "../../models/Item.h"
+
+class ItemMenu: public SubMenu {
+private:
+    vector<MenuItem*> getItems() override;
+
+    Item* item_;
+
+public:
+    void returnBack() override;
+
+    ItemMenu(Item* item);
+};
+
+
+#endif //KURSACH_ITEMMENU_H
+
+
+// src/menus/items/ItemOption.cpp
+#include "ItemOption.h"
+#include "../item/ItemMenu.h"
+
+string ItemOption::getDisplayName() {
+    return item_->get<string>("title");
+}
+
+void ItemOption::process() {
+    ItemMenu menu(item_);
+    menu.display();
+}
+
+ItemOption::ItemOption(Item *item) : item_(item) {}
+
+
+// src/menus/items/ItemOption.h
+#ifndef KURSACH_ITEMOPTION_H
+#define KURSACH_ITEMOPTION_H
+
+
+#include "../Option.h"
+#include "../../models/Item.h"
+
+class ItemOption: public Option {
+public:
+    string getDisplayName() override;
+    void process() override;
+
+    ItemOption(Item* item);
+
+private:
+    Item* item_;
+};
+
+
+#endif //KURSACH_ITEMOPTION_H
+
+
+// src/menus/items/ItemsListMenu.cpp
+#include "ItemsListMenu.h"
+#include "../main/MainMenu.h"
+#include "../../models/Item.h"
+#include "ItemOption.h"
+#include "../CategorizerItem.h"
+
+using namespace std;
+
+vector<MenuItem*> ItemsListMenu::getItems() {
+    vector<MenuItem*> options;
+
+    options.emplace_back(new CategorizerItem("ТОВАРИ"));
+    for(auto item : Item::all()) {
+        options.emplace_back(new ItemOption(item));
+    }
+
+    return options;
+}
+
+void ItemsListMenu::returnBack() {
+    MainMenu menu;
+    menu.display();
+}
+
+
+// src/menus/items/ItemsListMenu.h
+#ifndef KURSACH_ITEMSLISTMENU_H
+#define KURSACH_ITEMSLISTMENU_H
+
+#include "../SubMenu.h"
+
+class ItemsListMenu: public SubMenu {
+private:
+    vector<MenuItem*> getItems() override;
+
+public:
+    void returnBack() override;
+};
+
+
+#endif //KURSACH_ITEMSLISTMENU_H
+
+
+// src/menus/main/auth-options/LoginOption.cpp
+#include "LoginOption.h"
+#include <iostream>
+#include "../MainMenu.h"
+#include "../../../utils/console.h"
+#include "../../../Instance.h"
+#include <conio.h>
+
+using namespace std;
+
+string LoginOption::getDisplayName() {
+    return "Авторизуватись";
+}
+
+void LoginOption::process() {
+    cout << "Введіть логін: ";
+    string login;
+    cin >> login;
+
+    cout << "Введіть пароль: ";
+    string password;
+    cin >> password;
+    //password = readHiddenInput();
+
+    User* foundUser = nullptr;
+    for(auto user : User::all()) {
+        if(user->get<string>("login") != login || user->get<string>("password") != password)
+            continue;
+
+        foundUser = user;
+    }
+
+    if(foundUser == nullptr) {
+        waitUntilKeypress("Логін або пароль було введено неправильно");
+
+        MainMenu menu;
+        menu.display();
+        return;
+    }
+
+    Instance::getInstance()->setUser(foundUser);
+    waitUntilKeypress("Ви успішно авторизувались!");
+
+    MainMenu menu;
+    menu.display();
+}
+
+
+// src/menus/main/auth-options/LoginOption.h
+#ifndef KURSACH_LOGINCHOICE_H
+#define KURSACH_LOGINCHOICE_H
+
+
+#include "../../Option.h"
+
+class LoginOption: public Option {
+public:
+    string getDisplayName() override;
+    void process() override;
+};
+
+
+#endif //KURSACH_LOGINCHOICE_H
+
+
+// src/menus/main/auth-options/LogOutOption.cpp
+#include "LogOutOption.h"
+#include "../MainMenu.h"
+#include "../../../Instance.h"
+#include "../../../utils/console.h"
+#include <conio.h>
+#include <iostream>
+
+string LogOutOption::getDisplayName() {
+    return "Вийти з аккаунта";
+}
+
+void LogOutOption::process() {
+    Instance::getInstance()->setUser(nullptr);
+    waitUntilKeypress("Ви вийшли з аккаунта!");
+
+    MainMenu menu;
+    menu.display();
+}
+
+
+// src/menus/main/auth-options/LogOutOption.h
+#ifndef KURSACH_LOGOUTOPTION_H
+#define KURSACH_LOGOUTOPTION_H
+
+#include "../../Option.h"
+
+class LogOutOption: public Option {
+public:
+    string getDisplayName() override;
+    void process() override;
+};
+
+
+#endif //KURSACH_LOGOUTOPTION_H
+
+
+// src/menus/main/auth-options/RegisterOption.cpp
+#include <iostream>
+#include "../MainMenu.h"
+#include "../../../utils/console.h"
+#include "../../../Instance.h"
+#include "RegisterOption.h"
+
+using namespace std;
+
+string RegisterOption::getDisplayName() {
+    return "Зареєструватись";
+}
+
+void RegisterOption::process() {
+    cout << "Введіть логін: ";
+    string login;
+    cin >> login;
+
+    cout << "Введіть пароль: ";
+    string password;
+    cin >> password;
+
+    for(auto user : User::all()) {
+        if(user->get<string>("login") != login)
+            continue;
+
+        waitUntilKeypress("Користувач з таким логіном вже існує, виберіть інший!");
+
+        MainMenu menu;
+        menu.display();
+        return;
+    }
+
+    auto user = new User();
+    user->set("login", login);
+    user->set("password", password);
+    user->set("isAdmin", false);
+    user->save();
+
+    Instance::getInstance()->setUser(user);
+    waitUntilKeypress("Ви успішно зареєструвались і авторизувались!");
+
+    MainMenu menu;
+    menu.display();
+}
+
+
+// src/menus/main/auth-options/RegisterOption.h
+#ifndef KURSACH_REGISTERCHOICE_H
+#define KURSACH_REGISTERCHOICE_H
+
+
+#include "../../Option.h"
+
+class RegisterOption: public Option {
+public:
+    string getDisplayName() override;
+    void process() override;
+};
+
+
+#endif //KURSACH_REGISTERCHOICE_H
+
+
+// src/menus/main/items-options/AddItemOption.cpp
+#include "AddItemOption.h"
+#include "../../../utils/console.h"
+#include "../MainMenu.h"
+#include "../../../models/Item.h"
+
+string AddItemOption::getDisplayName() {
+    return "Додати товар";
+}
+
+void AddItemOption::process() {
+    cout << "Введіть заголовок: ";
+    string title;
+    cin >> title;
+
+    cout << "Введіть опис: ";
+    string description;
+    cin >> description;
+
+    auto user = new Item();
+    user->set("title", title);
+    user->set("description", description);
+    user->save();
+
+    waitUntilKeypress("Ви добавили новий товар!");
+
+    MainMenu menu;
+    menu.display();
+}
+
+
+// src/menus/main/items-options/AddItemOption.h
+#ifndef KURSACH_ADDITEMOPTION_H
+#define KURSACH_ADDITEMOPTION_H
+
+
+#include "../../Option.h"
+
+class AddItemOption: public Option {
+public:
+    string getDisplayName() override;
+    void process() override;
+};
+
+
+#endif //KURSACH_ADDITEMOPTION_H
+
+
+// src/menus/main/items-options/ItemsListOption.cpp
+#include "ItemsListOption.h"
+#include "../../items/ItemsListMenu.h"
+
+string ItemsListOption::getDisplayName() {
+    return "Список товарів";
+}
+
+void ItemsListOption::process() {
+    ItemsListMenu menu;
+    menu.display();
+}
+
+
+// src/menus/main/items-options/ItemsListOption.h
+#ifndef KURSACH_ITEMSLISTOPTION_H
+#define KURSACH_ITEMSLISTOPTION_H
+
+
+#include "../../Option.h"
+
+class ItemsListOption: public Option {
+public:
+    string getDisplayName() override;
+    void process() override;
+};
+
+
+#endif //KURSACH_ITEMSLISTOPTION_H
+
+
+// src/menus/main/MainMenu.cpp
+#include "MainMenu.h"
+#include "../../Instance.h"
+#include "auth-options/LogOutOption.h"
+#include "../MenuItem.h"
+#include "../DummyItem.h"
+#include "items-options/ItemsListOption.h"
+#include "../../utils/console.h"
+#include "../CategorizerItem.h"
+#include "auth-options/LoginOption.h"
+#include "auth-options/RegisterOption.h"
+#include "items-options/AddItemOption.h"
+
+using namespace std;
+
+vector<MenuItem*> MainMenu::getItems() {
+    vector<MenuItem*> options;
+
+    options.emplace_back(new CategorizerItem("ТОВАРИ"));
+    options.emplace_back(new ItemsListOption);
+    if(Instance::getInstance()->isLoggedIn() && Instance::getInstance()->getUser()->get<bool>("isAdmin")) {
+        options.emplace_back(new AddItemOption);
+    }
+
+    options.emplace_back(new CategorizerItem("АВТОРИЗАЦІЯ"));
+    if(! Instance::getInstance()->isLoggedIn()) {
+        options.emplace_back(new LoginOption);
+        options.emplace_back(new RegisterOption);
+    } else {
+        options.emplace_back(new LogOutOption);
+    }
+
+    return options;
+}
+
+// src/menus/main/MainMenu.h
+#ifndef KURSACH_MAINMENU_H
+#define KURSACH_MAINMENU_H
+
+#include "../Menu.h"
+#include "../MenuItem.h"
+
+using namespace std;
+
+class MainMenu: public Menu {
+private:
+    vector<MenuItem*> getItems() override;
+};
+
+
+#endif //KURSACH_MAINMENU_H
+
+
+// src/menus/Menu.cpp
+#include <iostream>
+#include <limits>
+#include <conio.h>
+#include <algorithm>
+#include "Menu.h"
+#include "ExitOption.h"
+#include "../Instance.h"
+#include "../utils/console.h"
+#include "DummyItem.h"
+#include "CategorizerItem.h"
+
+using namespace std;
+
+void Menu::printSeparatorBefore() {
+    cout << "---==== ІНТЕРНЕТ МАГАЗИН ІГРОВИХ КЛЮЧІВ ТА АКАУНТІВ ====---" << endl;
+
+    if(Instance::getInstance()->isLoggedIn()) {
+        auto user = Instance::getInstance()->getUser();
+        cout << " Авторизовано як: " << user->get<string>("login") << " - " << user->getRoleDisplayName() << endl;
+    }
+}
+
+void Menu::printItems() {
+    for (auto &item : items) {
+        if(item->canBePointedAt()) {
+            auto index = distance(pointableItems.begin(), find(pointableItems.begin(), pointableItems.end(), item));
+            cout << " " << (pointingAtOption == index ? "> " : " ");
+        }
+        cout << item->getDisplayString() << endl;
+    }
+}
+
+void Menu::printSeparatorAfter() {
+    cout << "\n ↑ - вверх, ↓ - вниз, → або ENTER - вибрати" << endl;
+    cout << "---=====================================================---" << endl;
+}
+
+void Menu::display() {
+    parseItems();
+    draw();
+
+    bool keepRunning = true;
+    while(keepRunning) {
+        int button = getch();
+
+        switch(button) {
+            case ARROW_UP:
+                if(pointingAtOption == 0) {
+                    pointingAtOption = pointableItems.size() - 1;
+                } else {
+                    pointingAtOption--;
+                }
+
+                draw();
+                break;
+            case ARROW_DOWN:
+                if(pointingAtOption + 1 == pointableItems.size()) {
+                    pointingAtOption = 0;
+                } else {
+                    pointingAtOption++;
+                }
+
+                draw();
+                break;
+            case ENTER:
+            case ARROW_RIGHT:
+                keepRunning = false;
+                pointableItems.at(pointingAtOption)->process();
+                break;
+            default:
+                keepRunning = processButtonPress(pointableItems.at(pointingAtOption), button);
+                break;
+        }
+    }
+}
+
+bool Menu::processButtonPress(MenuItem* option, int button) {
+    return true;
+}
+
+void Menu::parseItems() {
+    items = getItems();
+    items.emplace_back(new CategorizerItem("ІНШЕ"));
+    items.emplace_back(new ExitOption);
+
+    for(auto item : items) {
+        if(! item->canBePointedAt()) {
+            continue;
+        }
+
+        pointableItems.emplace_back(item);
+    }
+}
+
+
+void Menu::draw() {
+    clearScreen();
+    printSeparatorBefore();
+    printItems();
+    printSeparatorAfter();
+}
+
+// src/menus/Menu.h
+#ifndef KURSACH_MENU_H
+#define KURSACH_MENU_H
+
+#include <vector>
+#include <string>
+#include "Option.h"
+
+using namespace std;
+
+class Menu {
+private:
+    int pointingAtOption = 0;
+    vector<MenuItem*> items;
+    vector<MenuItem*> pointableItems;
+
+    virtual vector<MenuItem*> getItems() = 0;
+    void parseItems();
+
+    void printSeparatorBefore();
+    void printItems();
+    virtual void printSeparatorAfter();
+    void draw();
+
+protected:
+    // If false returned, then the cycle should be stopped (menu changed)
+    virtual bool processButtonPress(MenuItem* option, int button);
+
+public:
+    void display();
+};
+
+
+#endif //KURSACH_MENU_H
+
+
+// src/menus/MenuItem.cpp
+#include "MenuItem.h"
+
+
+// src/menus/MenuItem.h
+#ifndef KURSACH_MENUITEM_H
+#define KURSACH_MENUITEM_H
+
+
+#include <string>
+
+class MenuItem {
+public:
+    virtual std::string getDisplayString() = 0;
+    virtual bool canBePointedAt() = 0;
+    virtual void process() = 0;
+};
+
+
+#endif //KURSACH_MENUITEM_H
+
+
+// src/menus/Option.cpp
+#include "Option.h"
+
+bool Option::canBePointedAt() {
+    return true;
+}
+
+std::string Option::getDisplayString() {
+    return getDisplayName();
+}
+
+
+// src/menus/Option.h
+#ifndef KURSACH_CHOICE_H
+#define KURSACH_CHOICE_H
+
+#include <string>
+#include "MenuItem.h"
+
+using namespace std;
+
+class Option: public MenuItem {
+public:
+    virtual string getDisplayName() = 0;
+    bool canBePointedAt() override;
+    std::string getDisplayString() override;
+};
+
+
+#endif //KURSACH_CHOICE_H
+
+
+// src/menus/SubMenu.cpp
+#include <iostream>
+#include "SubMenu.h"
+#include "../utils/console.h"
+
+using namespace std;
+
+bool SubMenu::processButtonPress(MenuItem *option, int button) {
+    if(button == ESC || button == ARROW_LEFT) {
+        returnBack();
+        return false;
+    }
+
+    return Menu::processButtonPress(option, button);
+}
+
+void SubMenu::printSeparatorAfter() {
+    cout << "\n ↑ - вверх, ↓ - вниз, → або ENTER - вибрати, ← або ESC - назад" << endl;
+    cout << "---=====================================================---" << endl;
+}
+
+// src/menus/SubMenu.h
+#ifndef KURSACH_SUBMENU_H
+#define KURSACH_SUBMENU_H
+
+#include "Menu.h"
+
+using namespace std;
+
+class SubMenu: public Menu {
+private:
+    void printSeparatorAfter() override;
+
+protected:
+    bool processButtonPress(MenuItem* option, int button) override;
+
+public:
+    virtual void returnBack() = 0;
+};
+
+
+#endif //KURSACH_SUBMENU_H
+
+
+// src/models/Item.cpp
+#include "Item.h"
+
+template <>
+string Model<Item>::getTableName() {
+    return "items";
+}
+
+template <>
+vector<string> Model<Item>::getRequiredFieldsList() {
+    return {
+            "title", "description"
+    };
+}
+
+// src/models/Item.h
+#ifndef KURSACH_ITEM_H
+#define KURSACH_ITEM_H
+
+
+#include "../orm/Model.hpp"
+
+class Item: public Model<Item> {
+    using Model<Item>::Model;
+};
+
+
+#endif //KURSACH_ITEM_H
+
+
+// src/models/User.cpp
+#include "User.h"
+
+template <>
+string Model<User>::getTableName() {
+    return "users";
+}
+
+template <>
+vector<string> Model<User>::getRequiredFieldsList() {
+    return {
+        "login", "password", "isAdmin"
+    };
+}
+
+string User::getRoleDisplayName() {
+    return get<bool>("isAdmin") ? "Адміністратор" : "Користувач";
+}
+
+
+// src/models/User.h
+#ifndef KURSACH_USER_H
+#define KURSACH_USER_H
+
+#include <string>
+#include "../orm/Model.hpp"
+
+using namespace std;
+
+class User: public Model<User> {
+    using Model<User>::Model;
+public:
+    string getRoleDisplayName();
+};
+
+#endif //KURSACH_USER_H
+
+// src/orm/Field.hpp
+#ifndef KURSACH_FIELD_H
+#define KURSACH_FIELD_H
+
+#include <string>
+#include "../exceptions/UnableToCastModelFieldException.hpp"
+
+class Field {
+public:
+    Field() = default;
+    Field(std::string const& string) : value_(string) {}
+    virtual ~Field() = default;
+
+    template <typename T>
+    T get();
+
+    template <typename T>
+    void set(T value);
+
+private:
+    std::string value_;
+};
+
+template <>
+inline int Field::get<int>() {
+    return stoi(value_);
+}
+
+template <>
+inline void Field::set<int>(int value) {
+    value_ = std::to_string(value);
+}
+
+template <>
+inline bool Field::get<bool>() {
+    return value_ == "1";
+}
+
+template <>
+inline void Field::set<bool>(bool value) {
+    value_ = value ? "1" : "0";
+}
+
+template <>
+inline std::string Field::get<std::string>() {
+    return value_;
+}
+
+template <>
+inline void Field::set<std::string>(std::string value) {
+    value_ = value;
+}
+
+template <>
+inline void Field::set<const char*>(const char* value) {
+    value_ = value;
+}
+
+#endif //KURSACH_FIELD_H
+
+// src/orm/Model.hpp
+#ifndef KURSACH_MODEL_H
+#define KURSACH_MODEL_H
+
+#define ROW_FIELDS_SEPARATOR "\uE01F"
+#define ROW_FIELD_NAME_VALUE_SEPARATOR "\uE01E"
+
+#include <string>
+#include <vector>
+#include <iostream>
+#include <unordered_map>
+#include <memory>
+#include "../utils/strings.h"
+#include "../utils/files.h"
+#include "Field.hpp"
+#include "../exceptions/ModelFieldNotFoundException.hpp"
+
+using namespace std;
+
+template <typename T>
+class Model {
+private:
+    static string getTableName(); // ABSTRACT
+    static vector<string> getRequiredFieldsList(); // ABSTRACT
+
+    string toRow();
+    static void putFileStream(fstream& file);
+    static unordered_map<string, Field> rowToFields(string row);
+    static int getLastID();
+
+public:
+
+    unordered_map<string, Field> fields;
+
+    int id = -1; // -1 значить, що модель НЕ записана в базу
+    bool deleted = false;
+
+    Model(unordered_map<string, string> const& data);
+    Model(unordered_map<string, Field> data);
+    Model();
+
+    static T* findByID(int id);
+    static vector<T*> all();
+    void save();
+    void remove();
+
+    template <typename S>
+    void set(std::string const& field, S value);
+
+    template <typename S>
+    S get(std::string const& field);
+};
+
+
+template <typename T>
+T* Model<T>::findByID(int id) {
+    for(auto model : all()) {
+        if(model->template get<int>("id") != id) {
+            continue;
+        }
+
+        return model;
+    }
+
+    return nullptr;
+}
+
+template <typename T>
+vector<T*> Model<T>::all() {
+    fstream file;
+    putFileStream(file);
+
+    vector<T*> result;
+
+    string line;
+    while(getline(file, line)) {
+        if(line.length() == 0)
+            continue;
+
+        //T* model = new T(rowToFields(line));
+        auto model = new T(rowToFields(line));
+        //auto model = new T();
+        //model->fields = rowToFields(line);
+        result.emplace_back(model);
+    }
+
+    file.close();
+
+    return result;
+}
+
+template <typename T>
+int Model<T>::getLastID() {
+    fstream file;
+    putFileStream(file);
+    string lastLine = getLastLineFromFile(file);
+    file.close();
+
+    if(lastLine.length() == 0) {
+        return -1;
+    }
+
+    return rowToFields(lastLine).at("id").get<int>();
+}
+
+template <typename T>
+void Model<T>::save() {
+    fstream file;
+    putFileStream(file);
+
+    if(id == -1) {
+        id = getLastID() + 1;
+        file << toRow() << endl;
+        file.close();
+        return;
+    }
+
+    string newFilename = getTableName() + "_new";
+    fstream newFile;
+    openFile(newFilename, newFile);
+
+    string line;
+    while(getline(file, line)) {
+        if(line.length() == 0)
+            continue;
+
+        unordered_map<string, Field> fields = rowToFields(line);
+
+        // Якщо це не та строка, яка нам потрібна, ми просто записуємо її в новий файл
+        if(fields.at("id").get<int>() != id) {
+            newFile << line << endl;
+            continue;
+        }
+
+        // Якщо та, яку потрібно замінити, тоді спочатку перевіримо, чи модель було видалено
+        // Якщо так - пропустимо цей рядок
+        if(deleted) {
+            continue;
+        }
+
+        // Якщо модель не було видалено - виведемо строку з новими даними
+        newFile << toRow() << endl;
+    }
+
+    file.close();
+    newFile.close();
+
+    const char *oldFilename = wrapFilename(getTableName()).c_str();
+
+    ::remove(oldFilename);
+    rename(wrapFilename(newFilename).c_str(), oldFilename);
+}
+
+template<typename T>
+void Model<T>::remove() {
+    deleted = true;
+    save();
+}
+
+template<typename T>
+void Model<T>::putFileStream(fstream &file) {
+    openFile(getTableName(), file);
+}
+
+template <typename T>
+string Model<T>::toRow() {
+    vector<string> keyValuePairs;
+
+    for(auto pair : fields) {
+        keyValuePairs.emplace_back(pair.first + ROW_FIELD_NAME_VALUE_SEPARATOR + pair.second.get<string>());
+    }
+
+    return implodeString(keyValuePairs, ROW_FIELDS_SEPARATOR);
+}
+
+template <typename T>
+unordered_map<string, Field> Model<T>::rowToFields(string row) {
+    unordered_map<string, Field> result;
+
+    for(auto keyValue : explodeString(row, ROW_FIELDS_SEPARATOR)) {
+        vector<string> keyValueVector = explodeString(keyValue, ROW_FIELD_NAME_VALUE_SEPARATOR);
+
+        result[keyValueVector[0]] = Field(keyValueVector[1]);
+    }
+
+    return result;
+}
+
+template<typename T>
+template<typename S>
+void Model<T>::set(std::string const &field, S value) {
+    /*if(fields.count(field) == 0) {
+        fields.emplace(field, Field>());
+    }*/
+
+    return fields[field].set<S>(value);
+}
+
+template<typename T>
+template<typename S>
+S Model<T>::get(std::string const &field) {
+    auto iterator = fields.find(field);
+
+    if(iterator == fields.end()) {
+        throw ModelFieldNotFoundException(field);
+    }
+
+    return iterator->second.get<S>();
+}
+
+template<typename T>
+Model<T>::Model(unordered_map<string, string> const &data) {
+    for(auto const& pair : data) {
+        set<string>(pair.first, pair.second);
+    }
+}
+
+template<typename T>
+Model<T>::Model(unordered_map<string, Field> data) {
+    fields = data;
+}
+
+template<typename T>
+Model<T>::Model() {}
+
+#endif //KURSACH_MODEL_H
+
+// src/utils/console.cpp
+#include "console.h"
+#include <conio.h>
+
+std::string readHiddenInput() {
+    char input[20];
+
+    int i = 0;
+    while((input[i] = getch()) != '\r')
+    {
+        std::cout << "*";
+        i++;
+    }
+
+    return std::string(input);
+}
+
+void clearScreen() {
+    system("cls");
+}
+
+void waitUntilKeypress(std::string message) {
+    std::cout << message << " (нажміть будь яку клавішу для продовження)" << std::endl;
+    getch();
+}
+
+// src/utils/console.h
+#ifndef KURSACH_CONSOLE_H
+#define KURSACH_CONSOLE_H
+
+#include <string>
+#include <windows.h>
+#include <iostream>
+
+enum KeyboardButton {
+    ARROW_LEFT = 75,
+    ARROW_RIGHT = 77,
+    ARROW_UP = 72,
+    ARROW_DOWN = 80,
+    ENTER = 13,
+    ESC = 27
+};
+
+std::string readHiddenInput();
+void clearScreen();
+void waitUntilKeypress(std::string message);
+
+#endif //KURSACH_CONSOLE_H
+
+
+// src/utils/files.cpp
+#include <iostream>
+#include "files.h"
+
+string getLastLineFromFile(fstream& file) {
+    file.seekg(EOF); // go to the end of file
+
+    while(true) {
+        char ch;
+        file.get(ch);                            // Get current byte's data
+
+        if(file.tellg() <= 1) {             // If the data was at or before the 0th byte
+            file.seekg(0);                       // The first line is the last line
+            break;
+        } else if(ch == '\n') {                   // If the data was a newline
+            break;
+        }
+                                         // If the data was neither a newline nor at the 0 byte
+        file.seekg(-2,ios_base::cur);        // Move to the front of that data, then to the front of the data before it
+    }
+
+    string lastLine;
+    getline(file, lastLine);                      // Read the current line
+    return lastLine;
+}
+
+void openFile(string name, fstream& file) {
+    string filename = wrapFilename(name);
+    file.open(filename, fstream::in | fstream::out | fstream::app);
+
+    if(!file.is_open()) {
+        cout << "Неможливо відкрити/створити файл " << filename << "!" << endl;
+        throw exception();
+    }
+}
+
+string wrapFilename(string name) {
+    return name + ".txt";
+}
+
+
+// src/utils/files.h
+#ifndef KURSACH_FILES_H
+#define KURSACH_FILES_H
+
+#include <string>
+#include <fstream>
+
+using namespace std;
+
+void openFile(string name, fstream& file);
+string wrapFilename(string name);
+string getLastLineFromFile(fstream& file);
+
+#endif //KURSACH_FILES_H
+
+
+// src/utils/strings.cpp
+#include <string>
+#include <vector>
+#include <numeric>
+#include "strings.h"
+
+using namespace std;
+
+vector<string> explodeString(const string& str, const string& delim) {
+    vector<string> tokens;
+    size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos-prev);
+        if (!token.empty()) tokens.push_back(token);
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+    return tokens;
+}
+
+string implodeString(vector<string> arr, const string& delim) {
+    if(arr.empty()) {
+        return "";
+    }
+
+    if(arr.size() == 1) {
+        return arr[0];
+    }
+
+    string result = arr[0];
+    for(auto it = arr.begin() + 1; it != arr.end(); ++it) {
+        result += delim + *it;
+    }
+
+    return result;
+}
+
+
+// src/utils/strings.h
+#ifndef KURSACH_STRINGS_H
+#define KURSACH_STRINGS_H
+
+#include <string>
+#include <vector>
+
+using namespace std;
+
+vector<string> explodeString(const string& str, const string& delim);
+string implodeString(vector<string> arr, const string& delim);
+
+#endif //KURSACH_STRINGS_H
+
+
